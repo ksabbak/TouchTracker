@@ -12,6 +12,9 @@ class DrawView: UIView {
     
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
+    
+    var currentOvals = [NSValue:Line]()
+    var finishedOvals = [Line]()
 
     @IBInspectable var finishedLineColor: UIColor = .blackColor() {
         didSet
@@ -47,6 +50,13 @@ class DrawView: UIView {
         path.stroke()
     }
     
+    func makeOval(line: Line)
+    {
+        let path = UIBezierPath()
+        
+        path.be
+    }
+    
     override func drawRect(rect: CGRect)
     {
         //Draw finished lines in black
@@ -76,6 +86,7 @@ class DrawView: UIView {
             UIColor.init(hue: angle, saturation: 1.0, brightness: 1.0, alpha: 1.0).setStroke()
             strokeLine(line)
         }
+        
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?)
@@ -102,6 +113,15 @@ class DrawView: UIView {
             currentLines[key] = newLine
         }
         
+        if currentLines.count == 2
+        {
+       
+            
+            currentOvals = currentLines
+            currentLines.removeAll()
+        }
+        
+        print("OMG OVALS \(currentOvals)")
         setNeedsDisplay()
     }
     
