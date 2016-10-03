@@ -12,6 +12,7 @@ class DrawView: UIView {
     
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
+    var selectedLineIndex: Int?
 
     @IBInspectable var finishedLineColor: UIColor = .black {
         didSet
@@ -43,6 +44,11 @@ class DrawView: UIView {
         doubleTapRecognizer.numberOfTapsRequired = 2
         doubleTapRecognizer.delaysTouchesBegan = true
         addGestureRecognizer(doubleTapRecognizer)
+        
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.tap(_:)))
+        tapRecognizer.delaysTouchesBegan = true
+        tapRecognizer.require(toFail: doubleTapRecognizer)
+        addGestureRecognizer(tapRecognizer)
     }
     
     func strokeLine(line: Line)
@@ -85,6 +91,13 @@ class DrawView: UIView {
             
             UIColor.init(hue: angle, saturation: 1.0, brightness: 1.0, alpha: 1.0).setStroke()
             strokeLine(line: line)
+        }
+        
+        if let index = selectedLineIndex
+        {
+            UIColor.green.setStroke()
+            let selectedLine = finishedLines[index]
+            strokeLine(line: selectedLine)
         }
     }
     
@@ -170,9 +183,46 @@ class DrawView: UIView {
     {
         print("Recognized a double tap, let's hope this is fine.")
         
+        selectedLineIndex = nil
         currentLines.removeAll(keepingCapacity: false)
         finishedLines.removeAll(keepingCapacity: false)
         setNeedsDisplay()
+    }
+    
+    func tap(_ gestureRegcognizer: UITapGestureRecognizer)
+    {
+        print("Recognized a tap, probably?")
+        
+        let point = gestureRegcognizer.location(in: self)
+        selectedLineIndex = indexOfLineAtPoint(point: point)
+        
+        setNeedsDisplay()
+    }
+    
+    func indexOfLineAtPoint(point:CGPoint) -> Int?
+    {
+        //Find a line close to point
+        for (index, line) in finishedLines.enumerated()
+        {
+            let begin = line.begin
+            let end = line.end
+            
+            //Check a few points on the line
+            for t in stride(from: CGFloat(0), to: 1.0, by: 0.05)
+            {
+                let x = begin.x + ((end.x - begin.x) * t)
+                let y = begin.y + ((end.y - begin.y) * t)
+                
+                //If the tapped point is within 20 points, let's return this line
+                if hypot(x - point.x, y - point.y) < 20.0
+                {
+                    return index
+                }
+            }
+        }
+        
+        //If users aren't fucking tapping a line, just return nothing
+        return nil
     }
 
 }
