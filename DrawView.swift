@@ -12,7 +12,23 @@ class DrawView: UIView {
     
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
+    
     var selectedLineIndex: Int?
+    {
+        didSet
+        {
+            if selectedLineIndex == nil
+            {
+                let menu = UIMenuController.shared
+                menu.setMenuVisible(false, animated: true)
+            }
+        }
+    }
+    
+    override var canBecomeFirstResponder: Bool
+    {
+        return true
+    }
 
     @IBInspectable var finishedLineColor: UIColor = .black {
         didSet
@@ -196,6 +212,28 @@ class DrawView: UIView {
         let point = gestureRegcognizer.location(in: self)
         selectedLineIndex = indexOfLineAtPoint(point: point)
         
+        //Grab the menu controller
+        let menu = UIMenuController.shared
+        
+        if selectedLineIndex != nil
+        {
+            //Make DrawView the target of menu item action messages
+            becomeFirstResponder()
+            
+            //Create a new "Delete" UIMenuItem
+            let deleteItem = UIMenuItem(title: "Delete", action: #selector(self.deleteLine(_:)))
+            menu.menuItems = [deleteItem]
+            
+            //Tell the menu where it should come from and show it
+            menu.setTargetRect(CGRect(x: point.x, y: point.y, width: 2, height: 2), in: self)
+            menu.setMenuVisible(true, animated: true)
+        }
+        else
+        {
+            //Hide the menu if no line is selected
+            menu.setMenuVisible(false, animated: true)
+        }
+        
         setNeedsDisplay()
     }
     
@@ -223,6 +261,19 @@ class DrawView: UIView {
         
         //If users aren't fucking tapping a line, just return nothing
         return nil
+    }
+    
+    func deleteLine(_ sender: AnyObject)
+    {
+        //Remove the selected line from the list of finishedLines
+        if let index = selectedLineIndex
+        {
+            finishedLines.remove(at: index)
+            selectedLineIndex = nil
+            
+            //Redraw everything
+            setNeedsDisplay()
+        }
     }
 
 }
