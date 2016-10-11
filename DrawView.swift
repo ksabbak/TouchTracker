@@ -72,7 +72,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     
         moveRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.moveLine(_:)))
         moveRecognizer.delegate = self
-        moveRecognizer.cancelsTouchesInView = false
+        //moveRecognizer.cancelsTouchesInView = false
         addGestureRecognizer(moveRecognizer)
     }
     
@@ -123,6 +123,8 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
             UIColor.green.setStroke()
             let selectedLine = finishedLines[index]
             strokeLine(line: selectedLine)
+            
+            //setMenuLocation(selectedLine: finishedLines[index])
         }
     }
     
@@ -137,6 +139,11 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
 //        currentLine = Line(begin: location, end: location)
         
         //Let's put in a log statement to see the order of events I guess?
+        
+        selectedLineIndex = nil
+        let menu = UIMenuController.shared
+        menu.setMenuVisible(false, animated: true)
+        
         print(#function)
         
         
@@ -234,7 +241,10 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
             menu.menuItems = [deleteItem]
             
             //Tell the menu where it should come from and show it
-            menu.setTargetRect(CGRect(x: point.x, y: point.y, width: 2, height: 2), in: self)
+            let selectLine = finishedLines[selectedLineIndex!]
+            
+            setMenuLocation(selectedLine: selectLine)
+            
             menu.setMenuVisible(true, animated: true)
         }
         else
@@ -275,6 +285,9 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         //If a line is selected:
         if let index = selectedLineIndex
         {
+            moveRecognizer.cancelsTouchesInView = true
+            UIMenuController.shared.setMenuVisible(false, animated: true)
+            
             //When the pan recognizer changes its position:
             if gestureRecognizer.state == .changed
             {
@@ -286,14 +299,19 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
                 finishedLines[index].begin.y += translation.y
                 finishedLines[index].end.x += translation.x
                 finishedLines[index].end.y += translation.y
-
+                
                 gestureRecognizer.setTranslation(CGPoint.zero, in: self)
                 
                 setNeedsDisplay()
             }
+            else if gestureRecognizer.state == .ended
+            {
+                setMenuLocation(selectedLine: finishedLines[index])
+            }
         }
         else
         {
+            moveRecognizer.cancelsTouchesInView = false
             return
         }
     }
@@ -340,6 +358,27 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool
     {
         return true
+    }
+    
+    func setMenuLocation(selectedLine: Line)
+    {
+        let menu = UIMenuController.shared
+        
+        if selectedLine.begin.y <= selectedLine.end.y && selectedLine.begin.y >= 0
+        {
+            menu.setTargetRect(CGRect(x: selectedLine.begin.x, y: selectedLine.begin.y, width: 2, height: 2), in: self)
+            print(selectedLine.begin.y)
+            print(selectedLine.end.y)
+        }
+        else
+        {
+            menu.setTargetRect(CGRect(x: selectedLine.end.x, y: selectedLine.end.y, width: 2, height: 2), in: self)
+        }
+        
+        if menu.isMenuVisible == false
+        {
+            menu.setMenuVisible(true, animated: true)
+        }
     }
 
 }
