@@ -13,4 +13,5 @@ struct Line
 {
     var begin = CGPoint.zero
     var end = CGPoint.zero
+    var lineWidth: CGFloat = 0
 }

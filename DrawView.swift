@@ -13,6 +13,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
     var moveRecognizer: UIPanGestureRecognizer!
+
     
     var selectedLineIndex: Int?
     {
@@ -80,7 +81,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
     {
         let path = UIBezierPath()
         
-        path.lineWidth = lineThickness
+        path.lineWidth = line.lineWidth
         path.lineCapStyle = CGLineCap.round
         
         path.move(to: line.begin)
@@ -151,7 +152,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         {
             let location = touch.location(in: self)
             
-            let newLine = Line(begin: location, end: location)
+            let newLine = Line(begin: location, end: location, lineWidth: lineThickness)
             
             let key = NSValue(nonretainedObject: touch)
             currentLines[key] = newLine
@@ -168,6 +169,7 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         {
             let key = NSValue(nonretainedObject: touch)
             currentLines[key]?.end = touch .location(in: self)
+            currentLines[key]?.lineWidth = lineThickness
         }
         
         setNeedsDisplay()
@@ -312,6 +314,14 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         else
         {
             moveRecognizer.cancelsTouchesInView = false
+            
+            
+            let speedX = abs(moveRecognizer.velocity(in: self).x)
+            let speedY = abs(moveRecognizer.velocity(in: self).y)
+            let totalSpeed = speedX + speedY
+            print("Velocity: ========================\(totalSpeed)")
+            
+            lineThickness = (totalSpeed / 10) + 1
             return
         }
     }
