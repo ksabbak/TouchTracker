@@ -75,6 +75,10 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         moveRecognizer.delegate = self
         //moveRecognizer.cancelsTouchesInView = false
         addGestureRecognizer(moveRecognizer)
+        
+        let swipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeToColorMenu(_:)))
+        swipeRecognizer.numberOfTouchesRequired = 3
+        addGestureRecognizer(swipeRecognizer)
     }
     
     func strokeLine(line: Line)
@@ -389,6 +393,11 @@ class DrawView: UIView, UIGestureRecognizerDelegate {
         {
             menu.setMenuVisible(true, animated: true)
         }
+    }
+    
+    func swipeToColorMenu(_ gestureRecognizer: UISwipeGestureRecognizer)
+    {
+        
     }
 
 }
